@@ -112,6 +112,29 @@ fun LauncherScreen(
                     navigateToVersions(version)
                 }
             }
+            val toControlManageScreen: () -> Unit = {
+                backStackViewModel.mainScreen.removeAndNavigateTo(
+                    remove = NestedNavKey.Settings::class,
+                    screenKey = NormalNavKey.Settings.ControlManager
+                )
+            }
+            val toModManageScreen: () -> Unit = {
+                VersionsManager.currentVersion.value?.let { version ->
+                    navigateToVersions(version)
+                }
+            }
+            val toRendererScreen: () -> Unit = {
+                backStackViewModel.mainScreen.removeAndNavigateTo(
+                    remove = NestedNavKey.Settings::class,
+                    screenKey = NormalNavKey.Settings.Renderer
+                )
+            }
+            val toJavaManageScreen: () -> Unit = {
+                backStackViewModel.mainScreen.removeAndNavigateTo(
+                    remove = NestedNavKey.Settings::class,
+                    screenKey = NormalNavKey.Settings.JavaManager
+                )
+            }
 
             CompositionLocalProvider(
                 LocalUriHandler provides object : UriHandler {
@@ -134,7 +157,12 @@ fun LauncherScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 6.dp),
+                toControlManage = toControlManageScreen,
+                toVersionManage = toVersionManageScreen,
+                toModManage = toModManageScreen,
+                toRenderer = toRendererScreen,
+                toJavaManage = toJavaManageScreen
             )
 
             RightMenu(
@@ -154,33 +182,56 @@ fun LauncherScreen(
 @Composable
 private fun QuickActions(
     isVisible: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    toControlManage: () -> Unit,
+    toVersionManage: () -> Unit,
+    toModManage: () -> Unit,
+    toRenderer: () -> Unit,
+    toJavaManage: () -> Unit,
 ) {
     val yOffset by swapAnimateDpAsState(
         targetValue = 40.dp,
         swapIn = isVisible,
         isHorizontal = false
     )
+
+    val version by VersionsManager.currentVersion.collectAsStateWithLifecycle()
+
     Row(
         modifier = modifier
             .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         QuickActionCard(
             modifier = Modifier.weight(1f),
-            painter = painterResource(R.drawable.ic_download_2_filled),
-            title = stringResource(R.string.generic_download)
+            painter = painterResource(R.drawable.ic_sports_esports_filled),
+            title = stringResource(R.string.settings_tab_control_manage),
+            onClick = toControlManage
         )
         QuickActionCard(
             modifier = Modifier.weight(1f),
-            painter = painterResource(R.drawable.ic_info_outlined),
-            title = InfoDistributor.LAUNCHER_NAME,
-            subtitle = BuildConfig.VERSION_NAME
+            painter = painterResource(R.drawable.ic_dashboard_filled),
+            title = stringResource(R.string.page_title_version_list),
+            onClick = toVersionManage
         )
         QuickActionCard(
             modifier = Modifier.weight(1f),
-            painter = painterResource(R.drawable.ic_group_filled),
-            title = stringResource(R.string.terracotta)
+            painter = painterResource(R.drawable.ic_extension_outlined),
+            title = stringResource(R.string.mods_manage),
+            subtitle = version?.getVersionName(),
+            onClick = toModManage
+        )
+        QuickActionCard(
+            modifier = Modifier.weight(1f),
+            painter = painterResource(R.drawable.ic_settings_filled),
+            title = stringResource(R.string.settings_tab_renderer),
+            onClick = toRenderer
+        )
+        QuickActionCard(
+            modifier = Modifier.weight(1f),
+            painter = painterResource(R.drawable.ic_java),
+            title = stringResource(R.string.settings_tab_java_manage),
+            onClick = toJavaManage
         )
     }
 }
@@ -190,41 +241,41 @@ private fun QuickActionCard(
     modifier: Modifier = Modifier,
     painter: Painter,
     title: String,
-    subtitle: String? = null
+    subtitle: String? = null,
+    onClick: () -> Unit
 ) {
     Surface(
         modifier = modifier
-            .clip(shape = MaterialTheme.shapes.large),
+            .clip(shape = MaterialTheme.shapes.large)
+            .clickable(onClick = onClick),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
         shape = MaterialTheme.shapes.large
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                .padding(horizontal = 6.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Icon(
                 painter = painter,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.onSurface
             )
-            Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1
+            )
+            if (subtitle != null) {
                 Text(
-                    text = title,
+                    text = subtitle,
                     style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     maxLines = 1
                 )
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        maxLines = 1
-                    )
-                }
             }
         }
     }
