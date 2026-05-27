@@ -21,12 +21,14 @@ package com.movtery.zalithlauncher.ui.screens.main
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,7 +53,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -60,7 +61,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -165,35 +168,15 @@ fun MainScreen(
         color = backgroundColor,
         contentColor = onBackgroundColor()
     ) {
-        Row(
+        var isSidebarExpanded by remember { mutableStateOf(false) }
+
+        Box(
             modifier = Modifier
                 .applyFullscreen(AllSettings.launcherFullScreen.state)
         ) {
-            SidebarNavigation(
-                mainScreenKey = mainScreenKey,
-                inLauncherScreen = inLauncherScreen,
-                contentColor = onBackgroundColor(),
-                toSettingsScreen = {
-                    screenBackStackModel.mainScreen.removeAndNavigateTo(
-                        removes = screenBackStackModel.clearBeforeNavKeys,
-                        screenKey = screenBackStackModel.settingsScreen
-                    )
-                },
-                toDownloadScreen = {
-                    screenBackStackModel.navigateToDownload()
-                },
-                toMultiplayerScreen = {
-                    screenBackStackModel.mainScreen.removeAndNavigateTo(
-                        removes = screenBackStackModel.clearBeforeNavKeys,
-                        screenKey = NormalNavKey.Multiplayer
-                    )
-                },
-            )
-
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
+                    .fillMaxSize()
             ) {
                 TopBar(
                     modifier = Modifier
@@ -211,6 +194,7 @@ fun MainScreen(
                     changeExpandedState = {
                         changeTasksExpandedState()
                     },
+                    onToggleSidebar = { isSidebarExpanded = !isSidebarExpanded },
                 )
 
                 Box(
@@ -240,6 +224,41 @@ fun MainScreen(
                     }
                 }
             }
+
+            AnimatedVisibility(
+                visible = isSidebarExpanded,
+                enter = slideInHorizontally(
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300)),
+                exit = slideOutHorizontally(
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            ) {
+                SidebarNavigation(
+                    mainScreenKey = mainScreenKey,
+                    inLauncherScreen = inLauncherScreen,
+                    contentColor = onBackgroundColor(),
+                    onClose = { isSidebarExpanded = false },
+                    toSettingsScreen = {
+                        screenBackStackModel.mainScreen.removeAndNavigateTo(
+                            removes = screenBackStackModel.clearBeforeNavKeys,
+                            screenKey = screenBackStackModel.settingsScreen
+                        )
+                        isSidebarExpanded = false
+                    },
+                    toDownloadScreen = {
+                        screenBackStackModel.navigateToDownload()
+                        isSidebarExpanded = false
+                    },
+                    toMultiplayerScreen = {
+                        screenBackStackModel.mainScreen.removeAndNavigateTo(
+                            removes = screenBackStackModel.clearBeforeNavKeys,
+                            screenKey = NormalNavKey.Multiplayer
+                        )
+                        isSidebarExpanded = false
+                    },
+                )
+            }
         }
     }
 }
@@ -255,16 +274,16 @@ private fun <E: TitledNavKey> TopBar(
     onScreenBack: () -> Unit,
     toMainScreen: () -> Unit,
     changeExpandedState: () -> Unit,
+    onToggleSidebar: () -> Unit,
 ) {
     val festivals = LocalFestivals.current
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
     CompositionLocalProvider(
         LocalContentColor provides contentColor
     ) {
         ConstraintLayout(modifier = modifier) {
             val (backCenter, title, endButtons) = createRefs()
-
-            val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
             Row(
                 modifier = Modifier
@@ -275,6 +294,19 @@ private fun <E: TitledNavKey> TopBar(
                     }
                     .fillMaxHeight()
             ) {
+                Spacer(Modifier.width(4.dp))
+
+                IconButton(
+                    modifier = Modifier.fillMaxHeight(),
+                    onClick = onToggleSidebar
+                ) {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(R.drawable.ic_menu),
+                        contentDescription = stringResource(R.string.generic_main_menu)
+                    )
+                }
+
                 AnimatedVisibility(
                     visible = !inLauncherScreen
                 ) {
@@ -402,6 +434,7 @@ private fun SidebarNavigation(
     mainScreenKey: TitledNavKey?,
     inLauncherScreen: Boolean,
     contentColor: Color,
+    onClose: () -> Unit,
     toSettingsScreen: () -> Unit,
     toDownloadScreen: () -> Unit,
     toMultiplayerScreen: () -> Unit,
@@ -410,73 +443,87 @@ private fun SidebarNavigation(
     val inDownloadScreen = mainScreenKey is NestedNavKey.Download
     val inSettingsScreen = mainScreenKey is NestedNavKey.Settings
 
-    CompositionLocalProvider(
-        LocalContentColor provides contentColor
-    ) {
-        val scrollState = rememberScrollState()
-        Column(
+    Row(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .background(Color.Black.copy(alpha = 0.32f))
+                .clickable { onClose() }
+        )
+
+        Surface(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(68.dp)
-                .verticalScroll(scrollState)
-                .padding(vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .width(200.dp),
+            color = backgroundColor(),
+            tonalElevation = 4.dp,
+            shadowElevation = 8.dp
         ) {
-            NavigationRailItem(
-                selected = inLauncherScreen,
-                onClick = {},
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_home_filled),
-                        contentDescription = stringResource(R.string.generic_main_menu)
-                    )
-                },
-                label = { Text(text = stringResource(R.string.generic_main_menu)) }
-            )
-
-            VerticalDivider(
+            val scrollState = rememberScrollState()
+            Column(
                 modifier = Modifier
-                    .width(32.dp)
-                    .padding(vertical = 4.dp),
-                color = contentColor.copy(alpha = 0.3f)
-            )
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                NavigationRailItem(
+                    selected = inLauncherScreen,
+                    onClick = { onClose() },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_home_filled),
+                            contentDescription = stringResource(R.string.generic_main_menu)
+                        )
+                    },
+                    label = { Text(text = stringResource(R.string.generic_main_menu)) }
+                )
 
-            NavigationRailItem(
-                selected = inMultiplayerScreen,
-                onClick = { if (!inMultiplayerScreen) toMultiplayerScreen() },
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_group_filled),
-                        contentDescription = stringResource(R.string.terracotta)
-                    )
-                },
-                label = { Text(text = stringResource(R.string.terracotta)) }
-            )
+                VerticalDivider(
+                    modifier = Modifier
+                        .width(32.dp)
+                        .padding(vertical = 4.dp),
+                    color = contentColor.copy(alpha = 0.3f)
+                )
 
-            NavigationRailItem(
-                selected = inDownloadScreen,
-                onClick = { if (!inDownloadScreen) toDownloadScreen() },
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_download_2_filled),
-                        contentDescription = stringResource(R.string.generic_download)
-                    )
-                },
-                label = { Text(text = stringResource(R.string.generic_download)) }
-            )
+                NavigationRailItem(
+                    selected = inMultiplayerScreen,
+                    onClick = { if (!inMultiplayerScreen) toMultiplayerScreen() },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_group_filled),
+                            contentDescription = stringResource(R.string.terracotta)
+                        )
+                    },
+                    label = { Text(text = stringResource(R.string.terracotta)) }
+                )
 
-            NavigationRailItem(
-                selected = inSettingsScreen,
-                onClick = { if (!inSettingsScreen) toSettingsScreen() },
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_settings_filled),
-                        contentDescription = stringResource(R.string.generic_setting)
-                    )
-                },
-                label = { Text(text = stringResource(R.string.generic_setting)) }
-            )
+                NavigationRailItem(
+                    selected = inDownloadScreen,
+                    onClick = { if (!inDownloadScreen) toDownloadScreen() },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_download_2_filled),
+                            contentDescription = stringResource(R.string.generic_download)
+                        )
+                    },
+                    label = { Text(text = stringResource(R.string.generic_download)) }
+                )
+
+                NavigationRailItem(
+                    selected = inSettingsScreen,
+                    onClick = { if (!inSettingsScreen) toSettingsScreen() },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings_filled),
+                            contentDescription = stringResource(R.string.generic_setting)
+                        )
+                    },
+                    label = { Text(text = stringResource(R.string.generic_setting)) }
+                )
+            }
         }
     }
 }
