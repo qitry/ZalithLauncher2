@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -308,15 +307,30 @@ fun DownloadAssetsScreen(
         Triple(parentScreenKey, parentCurrentKey, false),
         Triple(key, currentKey, false),
     ) { isVisible ->
-        Row(
+        Column(
             modifier = Modifier.fillMaxSize()
         ) {
             val yOffset by swapAnimateDpAsState(targetValue = (-40).dp, swapIn = isVisible)
+            ProjectInfo(
+                modifier = Modifier
+                    .weight(0.35f)
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp, top = 12.dp)
+                    .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                projectResult = viewModel.projectResult,
+                defaultClasses = key.classes,
+                onReload = { viewModel.getProject() },
+                openLink = { url ->
+                    eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url))
+                }
+            )
+
+            val yOffsetV by swapAnimateDpAsState(targetValue = 40.dp, swapIn = isVisible)
             Versions(
                 modifier = Modifier
-                    .weight(6.5f)
-                    .fillMaxHeight()
-                    .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                    .weight(0.65f)
+                    .fillMaxWidth()
+                    .offset { IntOffset(x = 0, y = yOffsetV.roundToPx()) },
                 viewModel = viewModel,
                 onReload = { viewModel.getVersions() },
                 onItemClicked = { version ->
@@ -325,26 +339,6 @@ fun DownloadAssetsScreen(
                     }
                     onItemClicked(key.classes, version, key.iconUrl, deps)
                 },
-            )
-
-            val xOffset by swapAnimateDpAsState(
-                targetValue = 40.dp,
-                swapIn = isVisible,
-                isHorizontal = true
-            )
-            ProjectInfo(
-                modifier = Modifier
-                    .weight(3.5f)
-                    .fillMaxHeight()
-                    .padding(vertical = 12.dp)
-                    .padding(end = 12.dp)
-                    .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-                projectResult = viewModel.projectResult,
-                defaultClasses = key.classes,
-                onReload = { viewModel.getProject() },
-                openLink = { url ->
-                    eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url))
-                }
             )
         }
     }

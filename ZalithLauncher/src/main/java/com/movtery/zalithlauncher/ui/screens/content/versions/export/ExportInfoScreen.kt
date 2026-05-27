@@ -136,18 +136,15 @@ fun ExportInfoScreen(
         ) { scope ->
             //整合包名称/版本编辑
             animatedItem(scope) { yOffset ->
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(IntrinsicSize.Min)
                         .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     TextInputSettingsCard(
-                        modifier = Modifier
-                            .weight(0.6f)
-                            .fillMaxHeight(),
-                        position = CardPosition.TopStart,
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Top,
                         title = stringResource(R.string.versions_export_pack_name),
                         value = info.name,
                         onValueChange = { newName ->
@@ -166,10 +163,8 @@ fun ExportInfoScreen(
                     )
 
                     TextInputSettingsCard(
-                        modifier = Modifier
-                            .weight(0.4f)
-                            .fillMaxHeight(),
-                        position = CardPosition.TopEnd,
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
                         title = stringResource(R.string.versions_export_pack_version),
                         value = info.version,
                         onValueChange = {

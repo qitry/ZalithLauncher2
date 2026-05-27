@@ -60,6 +60,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
@@ -434,7 +435,7 @@ fun LoginMenuDialog(
     onAuthServerLogin: (server: AuthServer) -> Unit,
     onAddAuthServer: () -> Unit,
     onDeleteAuthServer: (server: AuthServer) -> Unit,
-) {
+    ) {
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -443,7 +444,7 @@ fun LoginMenuDialog(
             modifier = Modifier
                 .padding(all = 16.dp)
                 .fillMaxHeight()
-                .fillMaxWidth(0.6f),
+                .fillMaxWidth(0.9f),
             contentAlignment = Alignment.Center
         ) {
             Surface(
@@ -459,17 +460,16 @@ fun LoginMenuDialog(
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
-                            .weight(1f, fill = false)
+                            .weight(1f)
                             .fillMaxWidth()
                     ) {
                         Column(
                             modifier = Modifier
-                                .weight(1f)
+                                .fillMaxWidth()
                                 .verticalScroll(rememberScrollState())
-                                .padding(vertical = 12.dp)
-                                .padding(start = 12.dp, end = 6.dp),
+                                .padding(all = 12.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             //微软登录
@@ -492,10 +492,14 @@ fun LoginMenuDialog(
                             )
                         }
 
+                        HorizontalDivider()
+
                         LazyColumn(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
                             contentPadding = PaddingValues(
-                                start = 6.dp,
+                                start = 12.dp,
                                 top = 12.dp,
                                 end = 12.dp,
                                 bottom = 12.dp

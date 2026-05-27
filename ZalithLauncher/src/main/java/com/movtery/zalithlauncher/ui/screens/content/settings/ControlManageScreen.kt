@@ -99,7 +99,7 @@ import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.activities.startEditorActivity
 import com.movtery.zalithlauncher.ui.base.BaseScreen
-import com.movtery.zalithlauncher.ui.components.AnimatedRow
+import com.movtery.zalithlauncher.ui.components.AnimatedColumn
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
@@ -262,17 +262,17 @@ fun ControlManageScreen(
         val selectedLayout by ControlManager.selectedLayout.collectAsStateWithLifecycle()
         val isRefreshing by ControlManager.isRefreshing.collectAsStateWithLifecycle()
 
-        AnimatedRow(
+        AnimatedColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(all = 12.dp),
             isVisible = isVisible
         ) { scope ->
-            AnimatedItem(scope) { xOffset ->
+            AnimatedItem(scope) { yOffset ->
                 ControlLayoutList(
                     modifier = Modifier
-                        .weight(0.5f)
-                        .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+                        .weight(0.6f)
+                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
                     dataList = dataList,
                     locale = locale,
                     isLoading = isRefreshing,
@@ -299,11 +299,11 @@ fun ControlManageScreen(
                 )
             }
 
-            AnimatedItem(scope) { xOffset ->
+            AnimatedItem(scope) { yOffset ->
                 ControlLayoutInfo(
                     modifier = Modifier
-                        .weight(0.5f)
-                        .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+                        .weight(0.4f)
+                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
                     isLoading = isRefreshing,
                     data = selectedLayout,
                     locale = locale,
