@@ -57,7 +57,6 @@ import com.movtery.zalithlauncher.path.URL_EASYTIER
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.terracotta.Terracotta
 import com.movtery.zalithlauncher.ui.base.BaseScreen
-import com.movtery.zalithlauncher.ui.components.AnimatedRow
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.NotificationCheck
@@ -69,6 +68,7 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCa
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSettingsCard
 import com.movtery.zalithlauncher.ui.theme.cardTitleColor
+import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.file.shareFile
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
@@ -84,26 +84,35 @@ fun MultiplayerScreen(
         screenKey = NormalNavKey.Multiplayer,
         currentKey = backScreenViewModel.mainScreen.currentKey
     ) { isVisible ->
-        AnimatedRow(
-            modifier = Modifier.fillMaxSize(),
-            isVisible = isVisible,
-            delayIncrement = 0 //同时进行
-        ) { scope ->
-            AnimatedItem(scope) { xOffset ->
-                TutorialMenu(
-                    modifier = Modifier
-                        .weight(0.5f)
-                        .offset { IntOffset(x = -xOffset.roundToPx(), y = 0) }
-                        .padding(start = 12.dp)
-                )
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val tutorialYOffset by swapAnimateDpAsState(
+                targetValue = (-40).dp, swapIn = isVisible, isHorizontal = false
+            )
+            val mainYOffset by swapAnimateDpAsState(
+                targetValue = 40.dp, swapIn = isVisible, isHorizontal = false
+            )
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp, top = 12.dp)
+                    .offset { IntOffset(x = 0, y = tutorialYOffset.roundToPx()) }
+            ) {
+                TutorialMenu(modifier = Modifier.fillMaxSize())
             }
 
-            AnimatedItem(scope) { xOffset ->
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+                    .offset { IntOffset(x = 0, y = mainYOffset.roundToPx()) }
+            ) {
                 MainMenu(
-                    modifier = Modifier
-                        .weight(0.5f)
-                        .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
-                        .padding(end = 12.dp),
+                    modifier = Modifier.fillMaxSize(),
                     eventViewModel = eventViewModel,
                     onShareLogs = {
                         val logFile = PathManager.FILE_TERRACOTTA_LOG

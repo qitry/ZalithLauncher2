@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.screens.content
 
 import android.content.Context
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -229,7 +231,7 @@ fun VersionSettingsScreen(
         screenKey = key,
         currentKey = backScreenViewModel.mainScreen.currentKey
     ) { isVisible ->
-        Row(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
             val loaderInfo = remember(key) {
                 key.version.getVersionInfo()?.loaderInfo
             }
@@ -240,11 +242,13 @@ fun VersionSettingsScreen(
                 versionsScreenKey = key.currentKey,
                 canUpdateLoader = loaderInfo == null || loaderInfo.loader.autoDownloadable,
                 isUpdateLoader = loaderInfo != null && loaderInfo.loader.autoDownloadable,
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier.fillMaxWidth()
             )
 
             NavigationUI(
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
                 key = key,
                 viewModel = viewModel,
                 backScreenViewModel = backScreenViewModel,
@@ -283,34 +287,31 @@ private fun TabMenu(
     isUpdateLoader: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val xOffset by swapAnimateDpAsState(
+    val yOffset by swapAnimateDpAsState(
         targetValue = (-40).dp,
         swapIn = isVisible,
-        isHorizontal = true
+        isHorizontal = false
     )
 
     val scrollState = rememberScrollState()
-    Column(
+    Row(
         modifier = modifier
-            .fadeEdge(scrollState)
-            .width(IntrinsicSize.Min)
-            .padding(start = 8.dp)
-            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
-            .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+            .horizontalScroll(scrollState),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
         settingItems.forEach { item ->
             if (item.key == NormalNavKey.Versions.UpdateLoader && !canUpdateLoader) {
-                //不支持自动更新安装，不放置“更新加载器/安装加载器”入口
+                //不支持自动更新安装，不放置"更新加载器/安装加载器"入口
                 return@forEach
             }
 
             if (item.division) {
-                HorizontalDivider(
+                VerticalDivider(
                     modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .fillMaxWidth(0.4f)
+                        .padding(horizontal = 4.dp)
+                        .height(32.dp)
                         .alpha(0.4f),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -351,8 +352,6 @@ private fun TabMenu(
                     )
                 }
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

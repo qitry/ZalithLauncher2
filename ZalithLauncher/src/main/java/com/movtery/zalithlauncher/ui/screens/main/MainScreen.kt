@@ -219,7 +219,7 @@ fun MainScreen(
                     isExpanded = isTaskMenuExpanded,
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(0.3f)
+                        .fillMaxWidth(0.6f)
                         .align(Alignment.CenterStart)
                         .padding(all = 6.dp)
                 ) {

@@ -169,7 +169,7 @@ fun FileSelectorScreen(
         currentKey = backScreenViewModel.mainScreen.currentKey,
         useClassEquality = true
     ) { isVisible ->
-        Row(
+        Column(
             modifier = Modifier
                 .padding(all = 12.dp)
                 .fillMaxSize()
@@ -188,9 +188,7 @@ fun FileSelectorScreen(
                     key.onSelected(path)
                     back()
                 },
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(2.5f)
+                modifier = Modifier.fillMaxWidth()
             )
 
             FilesLayout(
@@ -202,9 +200,9 @@ fun FileSelectorScreen(
                 files = files,
                 selectFile = key.selectFile,
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(7.5f)
-                    .padding(start = 12.dp)
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
             )
         }
     }
@@ -219,32 +217,32 @@ private fun LeftActionMenu(
     createDir: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val surfaceXOffset by swapAnimateDpAsState(
+    val surfaceYOffset by swapAnimateDpAsState(
         targetValue = (-40).dp,
         swapIn = isVisible,
-        isHorizontal = true
+        isHorizontal = false
     )
 
-    Column(
+    Row(
         modifier = modifier
-            .offset { IntOffset(x = surfaceXOffset.roundToPx(), y = 0) },
-        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.Bottom),
+            .offset { IntOffset(x = 0, y = surfaceYOffset.roundToPx()) },
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         ScalingActionButton(
             enabled = backEnabled,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.weight(1f),
             onClick = backToParent
         ) {
             MarqueeText(text = stringResource(R.string.files_back_to_parent))
         }
         ScalingActionButton(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.weight(1f),
             onClick = createDir
         ) {
             MarqueeText(text = stringResource(R.string.files_create_dir))
         }
         ScalingActionButton(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.weight(1f),
             onClick = selectDir
         ) {
             MarqueeText(text = stringResource(R.string.files_select_dir))
@@ -280,14 +278,14 @@ private fun FilesLayout(
     selectFile: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val surfaceXOffset by swapAnimateDpAsState(
+    val surfaceYOffset by swapAnimateDpAsState(
         targetValue = 40.dp,
         swapIn = isVisible,
-        isHorizontal = true
+        isHorizontal = false
     )
 
     BackgroundCard(
-        modifier = modifier.offset { IntOffset(x = surfaceXOffset.roundToPx(), y = 0) },
+        modifier = modifier.offset { IntOffset(x = 0, y = surfaceYOffset.roundToPx()) },
         shape = MaterialTheme.shapes.extraLarge
     ) {
         Column(modifier = Modifier.fillMaxSize()) {

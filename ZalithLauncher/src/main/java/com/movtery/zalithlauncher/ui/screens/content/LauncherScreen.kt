@@ -69,7 +69,7 @@ import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.defaultRichTextStyle
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
-import com.movtery.zalithlauncher.ui.screens.content.elements.AccountAvatar
+import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.main.custom_home.MarkdownBlock
 import com.movtery.zalithlauncher.ui.screens.main.custom_home.customHomePage
@@ -90,7 +90,7 @@ fun LauncherScreen(
         screenKey = NormalNavKey.LauncherMain,
         currentKey = backStackViewModel.mainScreen.currentKey
     ) { isVisible ->
-        Row(
+        Column(
             modifier = Modifier.fillMaxSize()
         ) {
             CompositionLocalProvider(
@@ -101,7 +101,9 @@ fun LauncherScreen(
                 }
             ) {
                 ContentMenu(
-                    modifier = Modifier.weight(7f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
                     isVisible = isVisible,
                     onHomePageEvent = onHomePageEvent
                 )
@@ -127,9 +129,8 @@ fun LauncherScreen(
             RightMenu(
                 isVisible = isVisible,
                 modifier = Modifier
-                    .weight(3f)
-                    .fillMaxHeight()
-                    .padding(top = 12.dp, end = 12.dp, bottom = 12.dp),
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
                 onLaunchGame = onLaunchGame,
                 toAccountManageScreen = toAccountManageScreen,
                 toVersionManageScreen = toVersionManageScreen,
@@ -242,59 +243,47 @@ private fun RightMenuContent(
     val version by VersionsManager.currentVersion.collectAsStateWithLifecycle()
     val isRefreshing by VersionsManager.isRefreshing.collectAsStateWithLifecycle()
 
-    ConstraintLayout(
-        modifier = modifier
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        val (accountAvatar, versionManagerLayout, launchButton) = createRefs()
+        IconButton(onClick = toAccountManageScreen) {
+            if (account != null) {
+                PlayerFace(
+                    modifier = Modifier.size(36.dp),
+                    account = account!!,
+                    avatarSize = 36
+                )
+            } else {
+                Icon(
+                    modifier = Modifier.size(36.dp),
+                    painter = painterResource(R.drawable.ic_add),
+                    contentDescription = null
+                )
+            }
+        }
 
-        AccountAvatar(
+        VersionManagerLayout(
+            isRefreshing = isRefreshing,
+            version = version,
             modifier = Modifier
-                .constrainAs(accountAvatar) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(launchButton.top, margin = 32.dp)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                },
-            account = account,
-            onClick = toAccountManageScreen
+                .weight(1f)
+                .padding(horizontal = 8.dp),
+            swapToVersionManage = toVersionManageScreen
         )
-
-        Row(
-            modifier = Modifier.constrainAs(versionManagerLayout) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(launchButton.top)
-            },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            VersionManagerLayout(
-                isRefreshing = isRefreshing,
-                version = version,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(8.dp),
-                swapToVersionManage = toVersionManageScreen
-            )
-            version?.takeIf { !isRefreshing && it.isValid() }?.let {
-                IconButton(
-                    modifier = Modifier.padding(end = 8.dp),
-                    onClick = toVersionSettingsScreen
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_settings_filled),
-                        contentDescription = stringResource(R.string.versions_manage_settings)
-                    )
-                }
+        version?.takeIf { !isRefreshing && it.isValid() }?.let {
+            IconButton(
+                onClick = toVersionSettingsScreen
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_settings_filled),
+                    contentDescription = stringResource(R.string.versions_manage_settings)
+                )
             }
         }
 
         launchButton(
-            Modifier
-                .fillMaxWidth()
-                .constrainAs(launchButton) {
-                    bottom.linkTo(parent.bottom, margin = 8.dp)
-                }
-                .padding(PaddingValues(horizontal = 12.dp)),
+            Modifier.fillMaxWidth(0.35f),
             {
                 onLaunchGame()
             },
@@ -314,18 +303,20 @@ private fun RightMenu(
     toVersionManageScreen: () -> Unit = {},
     toVersionSettingsScreen: () -> Unit = {}
 ) {
-    val xOffset by swapAnimateDpAsState(
+    val yOffset by swapAnimateDpAsState(
         targetValue = 40.dp,
         swapIn = isVisible,
-        isHorizontal = true
+        isHorizontal = false
     )
 
     BackgroundCard(
-        modifier = modifier.offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+        modifier = modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
         shape = MaterialTheme.shapes.extraLarge
     ) {
         RightMenuContent(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             onLaunchGame = onLaunchGame,
             toAccountManageScreen = toAccountManageScreen,
             toVersionManageScreen = toVersionManageScreen,

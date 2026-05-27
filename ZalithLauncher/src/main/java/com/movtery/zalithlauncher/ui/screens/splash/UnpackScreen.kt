@@ -73,25 +73,22 @@ fun UnpackScreen(
         screenKey = NormalNavKey.UnpackDeps,
         currentKey = screenViewModel.splashScreen.currentKey
     ) { isVisible ->
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         ) {
             UnpackTaskList(
                 isVisible = isVisible,
                 items = items,
                 modifier = Modifier
-                    .weight(7f)
-                    .fillMaxHeight()
+                    .weight(1f)
+                    .fillMaxWidth()
             )
 
             ActionMenu(
                 isVisible = isVisible,
-                modifier = Modifier
-                    .weight(3f)
-                    .fillMaxHeight(),
+                modifier = Modifier.fillMaxWidth(),
                 onAgreeClick = onAgreeClick
             )
         }
@@ -106,34 +103,33 @@ private fun ActionMenu(
 ) {
     var installing by remember { mutableStateOf(false) }
 
-    val xOffset by swapAnimateDpAsState(
+    val yOffset by swapAnimateDpAsState(
         targetValue = 40.dp,
         swapIn = isVisible,
-        isHorizontal = true
+        isHorizontal = false
     )
 
-    Column(
-        modifier = modifier.offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+    Row(
+        modifier = modifier
+            .padding(top = 8.dp)
+            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
+        Text(
             modifier = Modifier
-                .verticalScroll(state = rememberScrollState())
                 .weight(1f)
-        ) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = if (installing) {
-                    stringResource(R.string.splash_screen_installing)
-                } else {
-                    stringResource(R.string.splash_screen_unpack_desc)
-                },
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+                .fillMaxWidth(),
+            text = if (installing) {
+                stringResource(R.string.splash_screen_installing)
+            } else {
+                stringResource(R.string.splash_screen_unpack_desc)
+            },
+            style = MaterialTheme.typography.bodyMedium
+        )
 
         ScalingActionButton(
             enabled = !installing,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(0.3f),
             onClick = {
                 installing = true
                 onAgreeClick()

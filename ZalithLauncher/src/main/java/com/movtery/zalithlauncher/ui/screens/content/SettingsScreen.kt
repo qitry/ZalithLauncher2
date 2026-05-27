@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -35,6 +36,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -85,9 +87,9 @@ fun SettingsScreen(
         currentKey = backStackViewModel.mainScreen.currentKey
     ) { isVisible ->
 
-        Row(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
             TabMenu(
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier.fillMaxWidth(),
                 isVisible = isVisible,
                 settingsScreenKey = backStackViewModel.settingsScreen.currentKey,
                 navigateTo = { settingKey ->
@@ -107,7 +109,9 @@ fun SettingsScreen(
                 },
                 eventViewModel = eventViewModel,
                 submitError = submitError,
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
             )
         }
     }
@@ -131,29 +135,26 @@ private fun TabMenu(
     settingsScreenKey: TitledNavKey?,
     navigateTo: (TitledNavKey) -> Unit
 ) {
-    val xOffset by swapAnimateDpAsState(
+    val yOffset by swapAnimateDpAsState(
         targetValue = (-40).dp,
         swapIn = isVisible,
-        isHorizontal = true
+        isHorizontal = false
     )
 
     val scrollState = rememberScrollState()
-    Column(
+    Row(
         modifier = modifier
-            .fadeEdge(scrollState)
-            .width(IntrinsicSize.Min)
-            .padding(start = 8.dp)
-            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
-            .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+            .horizontalScroll(scrollState),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
         settingItems.forEach { item ->
             if (item.division) {
-                HorizontalDivider(
+                VerticalDivider(
                     modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .fillMaxWidth(0.4f)
+                        .padding(horizontal = 4.dp)
+                        .height(32.dp)
                         .alpha(0.4f),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -176,8 +177,6 @@ private fun TabMenu(
                     )
                 }
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

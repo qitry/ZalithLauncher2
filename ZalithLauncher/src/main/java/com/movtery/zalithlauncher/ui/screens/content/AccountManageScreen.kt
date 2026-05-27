@@ -227,26 +227,15 @@ private fun AccountManageContent(
     operationUiState: AccountManageViewModel.OperationUiState,
     actions: AccountActions
 ) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        ActionsLayout(
-            isVisible = isVisible,
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(all = 12.dp)
-                .weight(3f),
-            currentAccount = profileUiState.currentAccount,
-            isOffline = profileUiState.isOffline,
-            actions = actions
-        )
-
         AccountsLayout(
             isVisible = isVisible,
             modifier = Modifier
-                .fillMaxHeight()
-                .padding(top = 12.dp, end = 12.dp, bottom = 12.dp)
-                .weight(7f),
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(top = 12.dp, start = 12.dp, end = 12.dp),
             accounts = profileUiState.accounts,
             currentAccount = profileUiState.currentAccount,
             isOffline = profileUiState.isOffline,
@@ -254,6 +243,16 @@ private fun AccountManageContent(
             accountSkinOperation = operationUiState.accountSkinOp,
             accountSkinDialogState = operationUiState.accountSkinDialogState,
             accountCapes = profileUiState.accountCapeOpMap,
+            actions = actions
+        )
+
+        ActionsLayout(
+            isVisible = isVisible,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+            currentAccount = profileUiState.currentAccount,
+            isOffline = profileUiState.isOffline,
             actions = actions
         )
     }
@@ -276,16 +275,16 @@ private fun ActionsLayout(
     isOffline: Boolean,
     actions: AccountActions
 ) {
-    val xOffset by swapAnimateDpAsState(
-        targetValue = (-40).dp,
+    val yOffset by swapAnimateDpAsState(
+        targetValue = 40.dp,
         swapIn = isVisible,
-        isHorizontal = true
+        isHorizontal = false
     )
 
-    Column(
+    Row(
         modifier = modifier
-            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
-            .fillMaxHeight()
+            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+        verticalAlignment = Alignment.CenterVertically
     ) {
         //玩家模型预览
         val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
@@ -348,7 +347,8 @@ private fun ActionsLayout(
         //添加账号
         ScalingActionButton(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth(0.35f)
+                .padding(start = 8.dp),
             onClick = {
                 if (isOffline) {
                     //非正版状态下，只允许创建微软账号

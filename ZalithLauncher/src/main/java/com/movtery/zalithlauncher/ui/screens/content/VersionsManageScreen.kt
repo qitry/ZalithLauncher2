@@ -275,7 +275,7 @@ fun VersionsManageScreen(
         screenKey = NormalNavKey.VersionsManager,
         currentKey = backScreenViewModel.mainScreen.currentKey
     ) { isVisible ->
-        Row {
+        Column {
             LeftMenu(
                 isVisible = isVisible,
                 isRefreshing = isRefreshing,
@@ -296,9 +296,7 @@ fun VersionsManageScreen(
                 changePathOperation = {
                     viewModel.gamePathOperation = it
                 },
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(2.5f)
+                modifier = Modifier.fillMaxWidth()
             )
 
             VersionsLayout(
@@ -314,10 +312,10 @@ fun VersionsManageScreen(
                 navigateToVersions = navigateToVersions,
                 navigateToExport = navigateToExport,
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(7.5f)
-                    .padding(vertical = 12.dp)
-                    .padding(end = 12.dp),
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+                    .padding(bottom = 12.dp),
                 submitError = submitError,
                 onRefresh = {
                     viewModel.startRefreshVersions()
@@ -364,31 +362,29 @@ private fun LeftMenu(
     changePathOperation: (GamePathOperation) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val surfaceXOffset by swapAnimateDpAsState(
+    val surfaceYOffset by swapAnimateDpAsState(
         targetValue = (-40).dp,
         swapIn = isVisible,
-        isHorizontal = true
+        isHorizontal = false
     )
 
-    Column(
-        modifier = modifier.offset { IntOffset(x = surfaceXOffset.roundToPx(), y = 0) },
+    Row(
+        modifier = modifier
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .offset { IntOffset(x = 0, y = surfaceYOffset.roundToPx()) },
+        verticalAlignment = Alignment.CenterVertically
     ) {
         val gamePaths by GamePathManager.gamePathData.collectAsStateWithLifecycle()
         val currentPath by GamePathManager.currentPath.collectAsStateWithLifecycle()
         val context = LocalContext.current
 
-        LazyColumn(
-            modifier = Modifier
-                .padding(all = 12.dp)
-                .fillMaxWidth()
-                .weight(1f)
-        ) {
-            items(gamePaths, key = { it.id }) { pathItem ->
+        Row(modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState())) {
+            gamePaths.forEach { pathItem ->
                 GamePathItemLayout(
                     item = pathItem,
                     selected = currentPath == pathItem.path,
                     onClick = {
-                        if (!isRefreshing) { //避免频繁刷新，防止currentGameInfo意外重置
+                        if (!isRefreshing) {
                             if (pathItem.id == GamePathManager.DEFAULT_ID) {
                                 GamePathManager.saveDefaultPath()
                             } else {
@@ -416,10 +412,7 @@ private fun LeftMenu(
         }
 
         ScalingActionButton(
-            modifier = Modifier
-                .padding(horizontal = 12.dp)
-                .padding(top = 8.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = 4.dp),
             onClick = {
                 (context as? MainActivity)?.let { activity ->
                     checkStoragePermissions(
@@ -437,9 +430,7 @@ private fun LeftMenu(
         }
 
         ScalingActionButton(
-            modifier = Modifier
-                .padding(PaddingValues(horizontal = 12.dp, vertical = 8.dp))
-                .fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = 4.dp),
             onClick = onCleanupGameFiles
         ) {
             MarqueeText(text = stringResource(R.string.versions_manage_cleanup))
