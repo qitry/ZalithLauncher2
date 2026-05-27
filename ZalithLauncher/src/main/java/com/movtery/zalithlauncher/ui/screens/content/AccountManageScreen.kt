@@ -309,11 +309,14 @@ private fun ActionsLayout(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(end = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             AndroidView(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
                 factory = { context ->
                     playerSkin.loadWebView(
                         context = context,
@@ -347,11 +350,9 @@ private fun ActionsLayout(
         //添加账号
         ScalingActionButton(
             modifier = Modifier
-                .fillMaxWidth(0.35f)
-                .padding(start = 8.dp),
+                .fillMaxWidth(0.35f),
             onClick = {
                 if (isOffline) {
-                    //非正版状态下，只允许创建微软账号
                     actions.onIntent(AccountManageIntent.UpdateMicrosoftLoginOp(MicrosoftLoginOperation.Tip))
                 } else {
                     actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))

@@ -24,8 +24,8 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.annotation.CallSuper
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -68,7 +68,7 @@ abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
 
             WindowCompat.setDecorFitsSystemWindows(window, false)
             WindowCompat.getInsetsController(window, window.decorView).apply {
-                hide(WindowInsetsCompat.Type.systemBars())
+                show(WindowInsetsCompat.Type.statusBars())
                 systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
 
@@ -83,9 +83,10 @@ abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
 
 @Composable
 fun Modifier.applyFullscreen(value: Boolean): Modifier {
-    val modifier = Modifier.fillMaxSize()
     return then(
-        if (value) modifier
-        else modifier.windowInsetsPadding(WindowInsets.displayCutout)
+        if (value) Modifier.fillMaxSize()
+        else Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.statusBars)
     )
 }

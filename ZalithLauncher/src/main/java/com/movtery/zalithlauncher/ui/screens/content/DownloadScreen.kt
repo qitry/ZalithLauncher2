@@ -19,16 +19,13 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -36,7 +33,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -98,9 +94,11 @@ fun DownloadScreen(
         currentKey = backScreenViewModel.mainScreen.currentKey,
         useClassEquality = true
     ) { isVisible: Boolean ->
-        Column(modifier = Modifier.fillMaxSize()) {
+        Row(modifier = Modifier.fillMaxSize()) {
             TabMenu(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(72.dp),
                 isVisible = isVisible,
                 backStack = key.backStack,
                 backScreenViewModel = backScreenViewModel,
@@ -114,7 +112,7 @@ fun DownloadScreen(
                 submitError = submitError,
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth()
+                    .fillMaxHeight()
             )
         }
     }
@@ -136,26 +134,26 @@ private fun TabMenu(
         CategoryItem(backScreenViewModel.downloadShadersScreen, { CategoryIcon(R.drawable.ic_lightbulb, R.string.download_category_shaders) }, R.string.download_category_shaders),
     )
 
-    val yOffset by swapAnimateDpAsState(
+    val xOffset by swapAnimateDpAsState(
         targetValue = (-40).dp,
-        swapIn = isVisible,
-        isHorizontal = false
+        swapIn = isVisible
     )
 
     val scrollState = rememberScrollState()
-    Row(
+    Column(
         modifier = modifier
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-            .horizontalScroll(scrollState),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 8.dp)
+            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
+            .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         downloadsList.forEach { item ->
             if (item.division) {
-                VerticalDivider(
+                HorizontalDivider(
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
-                        .height(32.dp)
+                        .width(32.dp)
                         .alpha(0.4f),
                     color = MaterialTheme.colorScheme.onSurface
                 )

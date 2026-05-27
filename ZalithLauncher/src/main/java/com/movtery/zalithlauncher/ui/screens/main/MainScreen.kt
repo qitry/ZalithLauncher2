@@ -43,14 +43,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -61,11 +66,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -81,7 +84,6 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.base.applyFullscreen
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
-import com.movtery.zalithlauncher.ui.components.TextRailItem
 import com.movtery.zalithlauncher.ui.screens.BackStackNavKey
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -163,23 +165,14 @@ fun MainScreen(
         color = backgroundColor,
         contentColor = onBackgroundColor()
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .applyFullscreen(AllSettings.launcherFullScreen.state)
         ) {
-            TopBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.dp),
+            SidebarNavigation(
                 mainScreenKey = mainScreenKey,
                 inLauncherScreen = inLauncherScreen,
-                taskRunning = tasks.isEmpty(),
-                isTasksExpanded = isTaskMenuExpanded,
                 contentColor = onBackgroundColor(),
-                onScreenBack = {
-                    screenBackStackModel.mainScreen.backStack.removeFirstOrNull()
-                },
-                toMainScreen = toMainScreen,
                 toSettingsScreen = {
                     screenBackStackModel.mainScreen.removeAndNavigateTo(
                         removes = screenBackStackModel.clearBeforeNavKeys,
@@ -195,35 +188,56 @@ fun MainScreen(
                         screenKey = NormalNavKey.Multiplayer
                     )
                 },
-                changeExpandedState = {
-                    changeTasksExpandedState()
-                },
             )
 
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .weight(1f)
+                    .fillMaxHeight()
             ) {
-                NavigationUI(
-                    modifier = Modifier.fillMaxSize(),
-                    screenBackStackModel = screenBackStackModel,
+                TopBar(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp),
+                    mainScreenKey = mainScreenKey,
+                    inLauncherScreen = inLauncherScreen,
+                    taskRunning = tasks.isEmpty(),
+                    isTasksExpanded = isTaskMenuExpanded,
+                    contentColor = onBackgroundColor(),
+                    onScreenBack = {
+                        screenBackStackModel.mainScreen.backStack.removeFirstOrNull()
+                    },
                     toMainScreen = toMainScreen,
-                    eventViewModel = eventViewModel,
-                    modpackImportViewModel = modpackImportViewModel,
-                    submitError = submitError
+                    changeExpandedState = {
+                        changeTasksExpandedState()
+                    },
                 )
 
-                TaskMenu(
-                    tasks = tasks,
-                    isExpanded = isTaskMenuExpanded,
+                Box(
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.6f)
-                        .align(Alignment.CenterStart)
-                        .padding(all = 6.dp)
+                        .fillMaxWidth()
+                        .weight(1f)
                 ) {
-                    changeTasksExpandedState()
+                    NavigationUI(
+                        modifier = Modifier.fillMaxSize(),
+                        screenBackStackModel = screenBackStackModel,
+                        toMainScreen = toMainScreen,
+                        eventViewModel = eventViewModel,
+                        modpackImportViewModel = modpackImportViewModel,
+                        submitError = submitError
+                    )
+
+                    TaskMenu(
+                        tasks = tasks,
+                        isExpanded = isTaskMenuExpanded,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(0.6f)
+                            .align(Alignment.CenterStart)
+                            .padding(all = 6.dp)
+                    ) {
+                        changeTasksExpandedState()
+                    }
                 }
             }
         }
@@ -240,16 +254,9 @@ private fun <E: TitledNavKey> TopBar(
     contentColor: Color,
     onScreenBack: () -> Unit,
     toMainScreen: () -> Unit,
-    toSettingsScreen: () -> Unit,
-    toDownloadScreen: () -> Unit,
-    toMultiplayerScreen: () -> Unit,
     changeExpandedState: () -> Unit,
 ) {
     val festivals = LocalFestivals.current
-
-    val inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer
-    val inDownloadScreen = mainScreenKey is NestedNavKey.Download
-    val inSettingsScreen = mainScreenKey is NestedNavKey.Settings
 
     CompositionLocalProvider(
         LocalContentColor provides contentColor
@@ -278,7 +285,6 @@ private fun <E: TitledNavKey> TopBar(
                             modifier = Modifier.fillMaxHeight(),
                             onClick = {
                                 if (!inLauncherScreen) {
-                                    //不在主屏幕时才允许返回
                                     backDispatcher?.onBackPressed() ?: run {
                                         onScreenBack()
                                     }
@@ -296,7 +302,6 @@ private fun <E: TitledNavKey> TopBar(
                             modifier = Modifier.fillMaxHeight(),
                             onClick = {
                                 if (!inLauncherScreen) {
-                                    //不在主屏幕时才允许回到主页面
                                     toMainScreen()
                                 }
                             }
@@ -387,71 +392,93 @@ private fun <E: TitledNavKey> TopBar(
                         )
                     }
                 }
-
-                TopBarRailItem(
-                    selected = inMultiplayerScreen,
-                    painter = painterResource(R.drawable.ic_group_filled),
-                    text = stringResource(R.string.terracotta),
-                    onClick = {
-                        if (!inMultiplayerScreen) toMultiplayerScreen()
-                    },
-                )
-
-                TopBarRailItem(
-                    selected = inDownloadScreen,
-                    painter = painterResource(R.drawable.ic_download_2_filled),
-                    text = stringResource(R.string.generic_download),
-                    onClick = {
-                        if (!inDownloadScreen) toDownloadScreen()
-                    },
-                )
-
-                TopBarRailItem(
-                    selected = inSettingsScreen,
-                    painter = painterResource(R.drawable.ic_settings_filled),
-                    text = stringResource(R.string.generic_setting),
-                    onClick = {
-                        if (!inSettingsScreen) toSettingsScreen()
-                    },
-                )
             }
         }
     }
 }
 
 @Composable
-private fun TopBarRailItem(
-    selected: Boolean,
-    painter: Painter,
-    text: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
-    textStyle: TextStyle = MaterialTheme.typography.labelMedium
+private fun SidebarNavigation(
+    mainScreenKey: TitledNavKey?,
+    inLauncherScreen: Boolean,
+    contentColor: Color,
+    toSettingsScreen: () -> Unit,
+    toDownloadScreen: () -> Unit,
+    toMultiplayerScreen: () -> Unit,
 ) {
-    TextRailItem(
-        modifier = modifier,
-        onClick = onClick,
-        text = {
-            AnimatedVisibility(visible = selected) {
-                Row {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = text,
-                        style = textStyle
+    val inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer
+    val inDownloadScreen = mainScreenKey is NestedNavKey.Download
+    val inSettingsScreen = mainScreenKey is NestedNavKey.Settings
+
+    CompositionLocalProvider(
+        LocalContentColor provides contentColor
+    ) {
+        val scrollState = rememberScrollState()
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(68.dp)
+                .verticalScroll(scrollState)
+                .padding(vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            NavigationRailItem(
+                selected = inLauncherScreen,
+                onClick = {},
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_home_filled),
+                        contentDescription = stringResource(R.string.generic_main_menu)
                     )
-                }
-            }
-        },
-        icon = {
-            Icon(
-                painter = painter,
-                contentDescription = text
+                },
+                label = { Text(text = stringResource(R.string.generic_main_menu)) }
             )
-        },
-        selected = selected,
-        selectedPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-        unSelectedPadding = PaddingValues(all = 8.dp),
-    )
+
+            VerticalDivider(
+                modifier = Modifier
+                    .width(32.dp)
+                    .padding(vertical = 4.dp),
+                color = contentColor.copy(alpha = 0.3f)
+            )
+
+            NavigationRailItem(
+                selected = inMultiplayerScreen,
+                onClick = { if (!inMultiplayerScreen) toMultiplayerScreen() },
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_group_filled),
+                        contentDescription = stringResource(R.string.terracotta)
+                    )
+                },
+                label = { Text(text = stringResource(R.string.terracotta)) }
+            )
+
+            NavigationRailItem(
+                selected = inDownloadScreen,
+                onClick = { if (!inDownloadScreen) toDownloadScreen() },
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_download_2_filled),
+                        contentDescription = stringResource(R.string.generic_download)
+                    )
+                },
+                label = { Text(text = stringResource(R.string.generic_download)) }
+            )
+
+            NavigationRailItem(
+                selected = inSettingsScreen,
+                onClick = { if (!inSettingsScreen) toSettingsScreen() },
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_settings_filled),
+                        contentDescription = stringResource(R.string.generic_setting)
+                    )
+                },
+                label = { Text(text = stringResource(R.string.generic_setting)) }
+            )
+        }
+    }
 }
 
 @Composable

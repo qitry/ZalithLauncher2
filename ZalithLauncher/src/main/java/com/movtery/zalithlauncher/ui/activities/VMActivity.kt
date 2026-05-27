@@ -53,6 +53,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -500,6 +503,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) hideSystemBars()
         CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_FOCUSED, if (hasFocus) 0 else 0)
     }
 
@@ -510,6 +514,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     override fun onPostResume() {
         super.onPostResume()
+        hideSystemBars()
         lifecycleScope.launch {
             if (vmViewModel.isRunning) {
                 delay(50L)
@@ -565,8 +570,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
         val code = AllSettings.physicalKeyImeCode.state
         if (isPressed && code != null && event.keyCode == code) {
-            //用户按下了绑定呼出输入法的按键
-            //开启或关闭输入法
             vmViewModel.textInputMode = vmViewModel.textInputMode.switch()
             return true
         }
@@ -580,11 +583,8 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
             }
 
             if (event.keyCode == KeyEvent.KEYCODE_TAB) {
-                //对于Tab键，为了避免选中其他的组件，这里应该直接拦截
                 return true
             }
-            //在输入文本的时候，应该避免继续处理按键事件
-            //否则输入法的一些功能键会失效
             return super.dispatchKeyEvent(event)
         }
         event.device?.let {
@@ -593,8 +593,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                 source and InputDevice.SOURCE_MOUSE == InputDevice.SOURCE_MOUSE) {
 
                 if (event.keyCode == KeyEvent.KEYCODE_BACK) {
-                    //一些系统会将鼠标右键当成KEYCODE_BACK来处理，需要在这里进行拦截
-                    //然后发送真实的鼠标右键
                     withHandler { sendMouseRight(isPressed) }
                     return false
                 }
@@ -667,6 +665,15 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         withHandler { mIsSurfaceDestroyed = true }
+    }
+
+    private fun hideSystemBars() {
+        window?.let { window ->
+            WindowCompat.getInsetsController(window, window.decorView).apply {
+                hide(WindowInsetsCompat.Type.systemBars())
+                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        }
     }
 
     @Composable

@@ -40,6 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -48,10 +49,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -93,22 +96,6 @@ fun LauncherScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            CompositionLocalProvider(
-                LocalUriHandler provides object : UriHandler {
-                    override fun openUri(uri: String) {
-                        onOpenLink(uri)
-                    }
-                }
-            ) {
-                ContentMenu(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    isVisible = isVisible,
-                    onHomePageEvent = onHomePageEvent
-                )
-            }
-
             val toAccountManageScreen: () -> Unit = {
                 backStackViewModel.mainScreen.navigateTo(
                     screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
@@ -126,6 +113,30 @@ fun LauncherScreen(
                 }
             }
 
+            CompositionLocalProvider(
+                LocalUriHandler provides object : UriHandler {
+                    override fun openUri(uri: String) {
+                        onOpenLink(uri)
+                    }
+                }
+            ) {
+                ContentMenu(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    isVisible = isVisible,
+                    onHomePageEvent = onHomePageEvent
+                )
+            }
+
+            QuickActions(
+                isVisible = isVisible,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+                    .padding(bottom = 8.dp)
+            )
+
             RightMenu(
                 isVisible = isVisible,
                 modifier = Modifier
@@ -136,6 +147,85 @@ fun LauncherScreen(
                 toVersionManageScreen = toVersionManageScreen,
                 toVersionSettingsScreen = toVersionSettingsScreen
             )
+        }
+    }
+}
+
+@Composable
+private fun QuickActions(
+    isVisible: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val yOffset by swapAnimateDpAsState(
+        targetValue = 40.dp,
+        swapIn = isVisible,
+        isHorizontal = false
+    )
+    Row(
+        modifier = modifier
+            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        QuickActionCard(
+            modifier = Modifier.weight(1f),
+            painter = painterResource(R.drawable.ic_download_2_filled),
+            title = stringResource(R.string.generic_download)
+        )
+        QuickActionCard(
+            modifier = Modifier.weight(1f),
+            painter = painterResource(R.drawable.ic_info_outlined),
+            title = InfoDistributor.LAUNCHER_NAME,
+            subtitle = BuildConfig.VERSION_NAME
+        )
+        QuickActionCard(
+            modifier = Modifier.weight(1f),
+            painter = painterResource(R.drawable.ic_group_filled),
+            title = stringResource(R.string.terracotta)
+        )
+    }
+}
+
+@Composable
+private fun QuickActionCard(
+    modifier: Modifier = Modifier,
+    painter: Painter,
+    title: String,
+    subtitle: String? = null
+) {
+    Surface(
+        modifier = modifier
+            .clip(shape = MaterialTheme.shapes.large),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+        shape = MaterialTheme.shapes.large
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                painter = painter,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        maxLines = 1
+                    )
+                }
+            }
         }
     }
 }
